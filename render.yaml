@@ -4,18 +4,20 @@ services:
     env: python
     region: frankfurt
     plan: free
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && python main.py
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-    healthCheckPath: /api/v1/health
     
   - type: static
     name: dostipendii-frontend
     region: frankfurt
+    rootDir: frontend
     buildCommand: ""
-    staticPublishPath: frontend
+    staticPublishPath: .
     routes:
       - type: rewrite
         source: /*
