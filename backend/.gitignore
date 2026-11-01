@@ -1,0 +1,4 @@
+doshipendii.db
+__pycache__/
+*.db
+*.db-*

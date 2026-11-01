@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>До стипендии</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; min-height: 100vh; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 32px; }
+        h1 { color: #34d399; font-size: 32px; margin-bottom: 8px; }
+        .subtitle { color: #94a3b8; font-size: 14px; }
+        .card { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .card h2 { margin-bottom: 16px; color: #f1f5f9; font-size: 20px; }
+        input { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #e2e8f0; font-size: 15px; margin-bottom: 12px; }
+        input:focus { outline: none; border-color: #10b981; }
+        button { width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; margin-bottom: 8px; transition: transform 0.1s, box-shadow 0.2s; }
+        button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        button:active { transform: translateY(0); }
+        button.secondary { background: linear-gradient(135deg, #475569 0%, #334155 100%); }
+        button.secondary:hover { box-shadow: 0 4px 12px rgba(71, 85, 105, 0.3); }
+        button.choice { background: #0f172a; border: 2px solid #475569; text-align: left; font-weight: normal; }
+        button.choice:hover { border-color: #10b981; background: #1e293b; box-shadow: none; transform: none; }
+        .hidden { display: none !important; }
+        .assignment { padding: 16px; background: #0f172a; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .assignment-info { flex: 1; }
+        .assignment-title { font-weight: 600; margin-bottom: 4px; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .badge.available { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge.in_progress { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge.completed { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+        .badge.closed { background: rgba(100, 116, 139, 0.2); color: #64748b; }
+        .choices { display: flex; flex-direction: column; gap: 10px; }
+        .balance { font-size: 36px; font-weight: 700; color: #34d399; text-align: center; margin: 20px 0; text-shadow: 0 0 20px rgba(52, 211, 153, 0.3); }
+        .info { color: #94a3b8; font-size: 14px; margin-bottom: 8px; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .stat-card { flex: 1; min-width: 120px; background: #0f172a; padding: 12px; border-radius: 8px; text-align: center; }
+        .stat-label { color: #94a3b8; font-size: 12px; margin-bottom: 4px; }
+        .stat-value { font-size: 20px; font-weight: 600; }
+        .error { color: #f87171; margin-top: 10px; font-size: 14px; }
+        .situation { background: #0f172a; padding: 16px; border-radius: 8px; margin-bottom: 20px; line-height: 1.7; border-left: 3px solid #10b981; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>До стипендии</h1>
+            <p class="subtitle">Тренажёр финансовой грамотности · MVP</p>
+        </header>
+
+        <!-- Join Screen -->
+        <div id="joinScreen" class="card">
+            <h2>Вход в группу</h2>
+            <p class="info" style="margin-bottom: 16px;">Введите код группы для начала игры</p>
+            <input type="text" id="groupCode" placeholder="Код группы" value="K7M2QX4P">
+            <button onclick="joinGroup()">Войти</button>
+            <p id="joinError" class="error"></p>
+        </div>
+
+        <!-- Status Screen -->
+        <div id="statusScreen" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <h2 style="margin-bottom: 6px;">Группа: <span id="groupTitle"></span></h2>
+                        <p class="info">Участник: <span id="participantId"></span></p>
+                    </div>
+                </div>
+                <button class="secondary" onclick="logout()" style="width: auto; padding: 8px 16px;">Выйти</button>
+            </div>
+
+            <div class="card">
+                <h2>Задания</h2>
+                <div id="assignmentsList"></div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="hidden">
+            <div class="card">
+                <div class="row">
+                    <div class="stat-card">
+                        <div class="stat-label">Игровой день</div>
+                        <div class="stat-value"><span id="gameDay"></span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Статус</div>
+                        <div class="stat-value" style="font-size: 16px;"><span id="gameStatus"></span></div>
+                    </div>
+                </div>
+                <div class="balance"><span id="gameBalance"></span> ₽</div>
+                <button class="secondary" onclick="backToStatus()">← К заданиям</button>
+            </div>
+
+            <div id="questionCard" class="card">
+                <h2 id="questionTitle"></h2>
+                <div class="situation" id="questionSituation"></div>
+                <p class="info" style="margin-bottom: 12px;">Выберите вариант решения:</p>
+                <div class="choices" id="choicesList"></div>
+            </div>
+
+            <div id="completedCard" class="card hidden">
+                <h2 style="color: #34d399; text-align: center; margin-bottom: 12px;">✓ Сессия завершена</h2>
+                <p class="info" style="text-align: center; margin-bottom: 16px;">Месяц пройден. Можно посмотреть разбор принятых решений.</p>
+                <button onclick="viewDebrief()">Посмотреть разбор</button>
+                <button class="secondary" onclick="backToStatus()">К заданиям</button>
+            </div>
+        </div>
+
+        <!-- Debrief Screen -->
+        <div id="debriefScreen" class="hidden">
+            <div class="card">
+                <h2>Разбор сессии</h2>
+                <div id="debriefContent"></div>
+                <button class="secondary" onclick="backToStatus()">← К заданиям</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.API_BASE = 'https://dostipendii-backend.onrender.com/api/v1';
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
